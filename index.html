@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>どっちのほうが創造性ある？ランキング実験</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 0.2em;
+    }
+    #description {
+      font-size: 14px;
+      color: #444;
+      margin-bottom: 16px;
+    }
+    .images {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .image-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 320px;
+    }
+    .image-wrapper img {
+      max-width: 100%;
+      max-height: 320px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    .image-wrapper img:hover {
+      border-color: #888;
+    }
+    .filename {
+      font-size: 12px;
+      margin-top: 4px;
+      color: #555;
+      word-break: break-all;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #555;
+    }
+    button {
+      padding: 6px 14px;
+      margin: 4px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-size: 13px;
+      background: #f6f6f6;
+    }
+    button:hover {
+      background: #e9e9e9;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #resultArea {
+      margin-top: 24px;
+      text-align: left;
+      max-width: 700px;
+      margin-inline: auto;
+      font-size: 13px;
+      white-space: pre-wrap;
+      border-top: 1px solid #ddd;
+      padding-top: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>どっちのほうが創造性ある？</h1>
+
+  <div id="description">
+    左右どちらか「創造性がある」と思う画像をクリックしてね。<br>
+    みんなの選択で、下のランキング（最上位〜最下位）が少しずつ変わっていきます。
+  </div>
+
+  <div class="images">
+    <div class="image-wrapper">
+      <img id="leftImg" alt="左の画像">
+      <div class="filename" id="leftName"></div>
+    </div>
+    <div class="image-wrapper">
+      <img id="rightImg" alt="右の画像">
+      <div class="filename" id="rightName"></div>
+    </div>
+  </div>
+
+  <div id="status">
+    画像枚数：<span id="imageCount">0</span>枚
+    <button id="refreshRankingBtn">ランキング更新</button>
+  </div>
+
+  <div id="resultArea"></div>
+
+  <script>
+    const images = [
+"images/(1).jpg",
+"images/(1).png",
+"images/(2).png",
+"images/(3).png",
+"images/(4).png",
+"images/(5).png",
+"images/(6).png",
+"images/(7).png",
+"images/(8).png",
+"images/(9).png",
+"images/(10).png",
+"images/(11).png",
+"images/(12).png",
+"images/(13).png",
+"images/(14).png",
+"images/(15).png",
+"images/(16).png",
+"images/(17).png",
+"images/(18).png",
+"images/(19).png",
+"images/(20).png",
+"images/(21).png",
+"images/(22).png",
+"images/(23).png",
+"images/(24).png",
+"images/(25).png",
+"images/(26).png",
+"images/(27).png",
+"images/(28).png",
+"images/(29).png",
+"images/(30).png",
+"images/(31).png",
+"images/(32).png",
+"images/(33).png",
+"images/(34).png",
+"images/(35).png",
+"images/(36).png",
+"images/(37).png",
+"images/(38).png",
+"images/(39).png",
+"images/(40).png",
+"images/(41).png",
+"images/(42).png",
+"images/(43).png",
+"images/(44).png",
+"images/(45).png",
+"images/(46).png",
+"images/(47).png",
+"images/(48).png",
+"images/(49).png",
+"images/(50).png",
+"images/(51).png",
+"images/(52).png",
+"images/(53).png",
+"images/(54).png",
+"images/(55).png",
+"images/(56).png",
+"images/(57).png",
+"images/(58).png",
+"images/(59).png",
+"images/(60).png",
+"images/(61).png",
+"images/(62).png",
+"images/(63).png",
+"images/(64).png",
+"images/(65).png",
+"images/(66).png",
+"images/(67).png",
+"images/(68).png",
+"images/(69).png",
+"images/(70).png",
+"images/(71).png",
+"images/(72).png",
+"images/(73).png",
+"images/(74).png",
+"images/(75).png",
+"images/(76).png",
+"images/(77).png",
+"images/(78).png",
+"images/(79).png",
+"images/(80).png",
+"images/(81).png",
+"images/(82).png",
+"images/(83).png",
+"images/(84).png",
+"images/(85).png",
+"images/(86).png",
+"images/(87).png",
+"images/(88).png",
+"images/(89).png",
+"images/(90).png",
+"images/(91).png",
+"images/(92).png",
+"images/(93).png",
+"images/(94).png",
+"images/(95).png",
+"images/(96).png",
+"images/(97).png",
+"images/(98).png",
+"images/(99).png",
+"images/(100).png",
+"images/(101).png",
+"images/(102).png",
+"images/(103).png",
+"images/(104).png",
+"images/(105).png",
+"images/(106).png",
+"images/(107).png",
+"images/(108).png",
+"images/(109).png",
+"images/(110).png",
+"images/(111).png",
+"images/(112).png",
+"images/(113).png",
+"images/(114).png"
+
+    ];
+
+    const scores = {};
+    let leftIndex = null;
+    let rightIndex = null;
+
+    const leftImg = document.getElementById("leftImg");
+    const rightImg = document.getElementById("rightImg");
+    const leftName = document.getElementById("leftName");
+    const rightName = document.getElementById("rightName");
+    const imageCountSpan = document.getElementById("imageCount");
+    const resultArea = document.getElementById("resultArea");
+    const refreshRankingBtn = document.getElementById("refreshRankingBtn");
+
+    function init() {
+      if (!Array.isArray(images) || images.length < 2) {
+        alert("images 配列に画像パスを2つ以上入れてください。");
+        return;
+      }
+
+      for (let i = 0; i < images.length; i++) {
+        scores[i] = { rating: 1000, wins: 0, losses: 0, shown: 0 };
+      }
+
+      imageCountSpan.textContent = images.length.toString();
+
+      pickTwoDifferent();
+      updateRankingView();
+    }
+
+    function pickTwoDifferent() {
+      let a = Math.floor(Math.random() * images.length);
+      let b;
+      do { b = Math.floor(Math.random() * images.length); } while (a === b);
+
+      leftIndex = a;
+      rightIndex = b;
+
+      leftImg.src = images[leftIndex];
+      rightImg.src = images[rightIndex];
+
+      leftName.textContent = images[leftIndex].split("/").pop();
+      rightName.textContent = images[rightIndex].split("/").pop();
+
+      scores[leftIndex].shown++;
+      scores[rightIndex].shown++;
+    }
+
+    function updateElo(winnerIndex, loserIndex, k = 16) {
+      const winner = scores[winnerIndex];
+      const loser = scores[loserIndex];
+
+      const Ra = winner.rating;
+      const Rb = loser.rating;
+
+      const Ea = 1 / (1 + Math.pow(10, (Rb - Ra) / 400));
+      const Eb = 1 / (1 + Math.pow(10, (Ra - Rb) / 400));
+
+      winner.rating = Ra + k * (1 - Ea);
+      loser.rating = Rb + k * (0 - Eb);
+
+      winner.wins++;
+      loser.losses++;
+    }
+
+    function updateRankingView() {
+      const arr = Object.entries(scores).map(([idx, obj]) => ({
+        index: Number(idx),
+        rating: obj.rating,
+        wins: obj.wins,
+        losses: obj.losses,
+        shown: obj.shown
+      }));
+
+      arr.sort((a, b) => b.rating - a.rating);
+
+      let text = "◆ 創造性スコア ランキング（最上位 → 最下位）\n";
+      text += "順位 | レート | 勝ち-負け | 表示回数 | ファイル名\n";
+      text += "----------------------------------------------------------\n";
+
+      arr.forEach((item, i) => {
+        const filename = images[item.index].split("/").pop();
+        text += `${String(i + 1).padStart(2, " ")}位 | ` +
+                `${item.rating.toFixed(1).padStart(6, " ")} | ` +
+                `${String(item.wins).padStart(2, " ")}-${String(item.losses).padStart(2, " ")} | ` +
+                `${String(item.shown).padStart(3, " ")}回 | ` +
+                `${filename}\n`;
+      });
+
+      resultArea.textContent = text;
+    }
+
+    leftImg.addEventListener("click", () => {
+      updateElo(leftIndex, rightIndex);
+      pickTwoDifferent();
+      updateRankingView();
+    });
+
+    rightImg.addEventListener("click", () => {
+      updateElo(rightIndex, leftIndex);
+      pickTwoDifferent();
+      updateRankingView();
+    });
+
+    refreshRankingBtn.addEventListener("click", updateRankingView);
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
